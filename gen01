@@ -1,4 +1,4 @@
 #!/bin/bash
 
-ssh root@gen01.tuenti.int
+ssh root@gen02.tuenti.int
 
