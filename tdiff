@@ -1,0 +1,53 @@
+#!/usr/bin/env python3
+import html
+import signal
+import sys
+
+
+def main():
+    diff = sys.stdin.read().strip()
+
+    diff_lines = format_diff(diff)
+    output = '<meta charset="utf-8"><span style="font-size:small"><pre>{}</pre></span>'.format(
+        '\n'.join(diff_lines)
+    )
+
+    if '-o' in sys.argv:
+        print(output)
+    else:
+        import klembord
+        klembord.init()
+        klembord.set_with_rich_text(diff, output)
+        print("Push <ctrl-c> to exit")
+        signal.sigwait([signal.SIGINT])
+
+
+def format_diff(diff):
+    is_msg = False
+    for l in diff.splitlines(False):
+        if l.startswith('diff'):
+            is_msg = False
+            yield '<b>{}</b>'.format(html.escape(l))
+        elif l.startswith('@'):
+            is_msg = True
+            end = l.find('@@', 2)
+            yield '<span style="color:#00aaaa">{}</span>{}'.format(
+                html.escape(l[:end+2]),
+                html.escape(l[end+2:])
+            )
+        elif is_msg and l.startswith('+'):
+            yield '<span style="color:#9ed267">{}</span>'.format(
+                html.escape(l)
+            )
+        elif is_msg and l.startswith('-'):
+            yield '<span style="color:#ef6950">{}</span>'.format(
+                html.escape(l)
+            )
+        elif not is_msg:
+            yield '<b>{}</b>'.format(html.escape(l))
+        else:
+            yield html.escape(l)
+
+
+if __name__ == "__main__":
+    main()
